@@ -1,0 +1,527 @@
+/* -------------------------------------------------------------------------
+   Appearance modes
+   These rules are additive. They never edit the original glass rules above.
+   ------------------------------------------------------------------------- */
+
+/* Custom liquid glass: only active for glass + custom theme. */
+:root[data-render-mode='glass'][data-custom='1'] .capsule.glass {
+  border-radius: var(--glass-custom-radius, 32px);
+  border-width: var(--glass-custom-border-width, 1px);
+  border-color: rgba(255, 255, 255, var(--glass-custom-border-alpha, 0.35));
+  background: color-mix(
+    in srgb,
+    var(--accent) 13%,
+    rgba(15, 17, 27, var(--glass-custom-alpha, 0.6))
+  );
+  backdrop-filter: blur(var(--glass-custom-blur, 18px)) saturate(175%);
+  -webkit-backdrop-filter: blur(var(--glass-custom-blur, 18px)) saturate(175%);
+}
+
+:root[data-render-mode='glass'][data-custom='1'] .panel.glass {
+  border-radius: var(--glass-custom-radius, 32px);
+  border-width: var(--glass-custom-border-width, 1px);
+  border-color: rgba(255, 255, 255, var(--glass-custom-border-alpha, 0.35));
+  background:
+    linear-gradient(
+      148deg,
+      color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, var(--glass-custom-alpha, 0.58))),
+      rgba(12, 14, 24, calc(var(--glass-custom-alpha, 0.58) * 0.92))
+    );
+  backdrop-filter: blur(var(--glass-custom-blur, 18px)) saturate(175%);
+  -webkit-backdrop-filter: blur(var(--glass-custom-blur, 18px)) saturate(175%);
+}
+
+/* Text-only contrast for custom glass; surfaces keep their own alpha. */
+:root[data-render-mode='glass'][data-custom='1'] .capsule.glass,
+:root[data-render-mode='glass'][data-custom='1'] .panel.glass {
+  --text: var(--glass-custom-text-1);
+  --text-2: var(--glass-custom-text-2);
+  --text-3: var(--glass-custom-text-3);
+  --text-4: var(--glass-custom-text-4);
+}
+
+/* Solid renderer: no glass class is applied to the island surfaces. */
+:root[data-render-mode='solid'] .capsule.solid,
+:root[data-render-mode='solid'] .panel.solid {
+  --text: var(--solid-text);
+  --text-2: var(--solid-text-2);
+  --text-3: var(--solid-text-3);
+  --text-4: var(--solid-text-4);
+  --chip: color-mix(in srgb, var(--solid-text) 8%, transparent);
+  --chip-border: color-mix(in srgb, var(--solid-text) 14%, transparent);
+  --chip-hover: color-mix(in srgb, var(--solid-text) 14%, transparent);
+  --card-bg: color-mix(in srgb, var(--solid-text) 5%, transparent);
+  --card-border: color-mix(in srgb, var(--solid-text) 12%, transparent);
+  --input-bg: color-mix(in srgb, var(--solid-text) 6%, transparent);
+  --input-border: color-mix(in srgb, var(--solid-text) 16%, transparent);
+  color: var(--solid-text);
+}
+
+:root[data-render-mode='solid'] .capsule.solid {
+  background: var(--solid-bg);
+  border: 1px solid var(--solid-border);
+  box-shadow: var(--capsule-shadow);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:root[data-render-mode='solid'] .panel.solid {
+  background: var(--solid-bg);
+  border: 1px solid var(--solid-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* No gradient top highlight, sheen, glass clip, or extra translucent layer. */
+:root[data-render-mode='solid'] .capsule.solid::before,
+:root[data-render-mode='solid'] .capsule.solid::after,
+:root[data-render-mode='solid'] .panel.solid::before,
+:root[data-render-mode='solid'] .panel.solid::after,
+:root[data-render-mode='solid'] .capsule.solid .capsule-sheen,
+:root[data-render-mode='solid'] .panel.solid .panel-sheen,
+:root[data-render-mode='solid'] .capsule.solid .glass-clip,
+:root[data-render-mode='solid'] .panel.solid .glass-clip {
+  display: none !important;
+  content: none !important;
+}
+
+/* Solid mode keeps panel cards readable without introducing blur. */
+:root[data-render-mode='solid'] .panel.solid .card,
+:root[data-render-mode='solid'] .panel.solid .panel-foot {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* -------------------------------------------------------------------------
+   Settings controls
+   ------------------------------------------------------------------------- */
+
+.render-mode-row {
+  align-items: center;
+}
+
+.render-mode-row .segmented {
+  flex: 0 0 auto;
+}
+
+.render-mode-note {
+  font-size: 10px;
+  color: var(--text-3);
+  line-height: 1.45;
+  margin: -2px 0 2px;
+}
+
+.theme-custom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  padding: 12px;
+  margin: 2px 0 8px;
+  border: 1px solid var(--chip-border);
+  border-radius: 14px;
+  background: var(--chip);
+}
+
+.theme-custom-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.theme-custom-field > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 9.5px;
+  color: var(--text-3);
+}
+
+.theme-custom-field > span b {
+  color: var(--text-2);
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-custom-grid .range {
+  width: 100%;
+}
+
+.theme-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-color-row input[type='color'] {
+  width: 38px;
+  height: 28px;
+  padding: 2px;
+  border: 1px solid var(--chip-border);
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.theme-color-row .input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: lowercase;
+}
+
+.theme-preset-row {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.theme-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--chip-border);
+  border-radius: 9px;
+  background: var(--chip);
+  color: var(--text-2);
+  font-size: 10.5px;
+}
+
+.theme-preset.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, transparent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.theme-preset-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(127, 137, 160, 0.45);
+}
+
+.solid-controls {
+  margin-top: 7px;
+}
+
+.settings-appearance-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.alarm-form {
+  flex-wrap: wrap;
+}
+
+.alarm-form .input-date {
+  flex: 0 0 104px !important;
+  width: 104px;
+}
+
+.cap-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.cap-tools:empty {
+  display: none;
+}
+
+.cap-tool {
+  flex: 0 0 auto;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 8px;
+  overflow: hidden;
+  border: 1px solid var(--chip-border);
+  border-radius: 9px;
+  background: var(--chip);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.cap-tool.tool-alarm {
+  width: 300px;
+}
+
+.cap-tool.tool-todo {
+  width: 270px;
+}
+
+.cap-tool.tool-countdown {
+  width: 150px;
+}
+
+.cap-tool.tool-countdown:has(.cap-tool-actions) {
+  width: 250px;
+}
+
+.cap-tool.tool-stopwatch {
+  width: 140px;
+}
+
+.cap-tool.tool-media {
+  width: 230px;
+}
+
+.cap-tool-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.cap-tool-text b,
+.cap-tool-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cap-tool-text b {
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 620;
+}
+
+.cap-tool-text small {
+  color: var(--text-3);
+  font-size: 8.5px;
+}
+
+.cap-tool-time {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.cap-tool-label {
+  font-size: 9px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cap-tool-actions {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.cap-tool-actions .alarm-action {
+  height: 22px;
+  padding: 0 6px;
+  font-size: 8px;
+}
+
+.cap-tool.tool-media .media-peek {
+  min-width: 0;
+  width: 100%;
+}
+
+.alarm-actions {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.alarm-action {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--warn) 26%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
+  color: var(--text-2);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.alarm-action.is-primary {
+  background: color-mix(in srgb, var(--warn) 28%, transparent);
+  color: var(--text);
+}
+
+.countdown-time-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.countdown-time-inputs label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.countdown-time-inputs .input-mini {
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+}
+
+.countdown-time-inputs label span {
+  flex: 0 0 auto;
+  font-size: 9px;
+  color: var(--text-3);
+}
+
+.todo-reminder-toggle.is-on {
+  color: var(--accent);
+}
+
+.todo-reminder-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1 0 100%;
+  padding-left: 24px;
+}
+
+.todo-reminder-controls .input-mini {
+  height: 24px;
+  min-width: 0;
+  font-size: 9px;
+}
+
+.todo-reminder-controls input[type='datetime-local'] {
+  flex: 1;
+}
+
+.todo-reminder-controls .input-select {
+  width: 62px;
+  flex: 0 0 auto;
+}
+
+.countdown-reminder-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  font-size: 9.5px;
+  color: var(--text-3);
+}
+
+.countdown-reminder-row .input-select {
+  width: 100px;
+  height: 26px;
+}
+
+.layout-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  min-width: 240px;
+}
+
+.layout-preset {
+  height: 26px;
+  border: 1px solid var(--chip-border);
+  border-radius: 7px;
+  background: var(--chip);
+  color: var(--text-3);
+  font-size: 9.5px;
+}
+
+.layout-preset.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, transparent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* Keep the material depth inside the island. The native window is shaped to
+   the capsule rectangle, so an outer shadow would be clipped into a hard black
+   rectangular border around it. */
+.capsule,
+.capsule:hover {
+  box-shadow:
+    inset 0 1px 0 var(--inset-light),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22) !important;
+}
+
+.panel,
+.panel.glass,
+.panel.solid {
+  box-shadow:
+    inset 0 1px 0 var(--inset-light),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+.capsule.has-alarm {
+  animation: alarm-glow-inset 2.6s ease-in-out infinite;
+}
+
+@keyframes alarm-glow-inset {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 var(--inset-light),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 var(--inset-light),
+      inset 0 0 22px color-mix(in srgb, var(--warn) 28%, transparent);
+  }
+}
+
+/* The island reports its measured content width; this is the one width the
+   native mask and the click-through hit-test use. */
+.capsule-wrap {
+  width: min(calc(100vw - 96px), var(--capsule-width, 940px));
+  transition: width 0.32s var(--ease-out);
+}
+
+.capsule-wrap.is-anchored {
+  animation-name: capsule-in-anchored;
+}
+
+.capsule-wrap.is-vertical {
+  width: 260px !important;
+}
+
+.capsule-wrap.is-vertical .capsule {
+  height: auto;
+  min-height: 240px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
+  padding: 14px 12px;
+}
+
+.capsule-wrap.is-vertical .cap-left,
+.capsule-wrap.is-vertical .cap-center,
+.capsule-wrap.is-vertical .cap-right {
+  width: 100%;
+  justify-content: center;
+}
+
+.capsule-wrap.is-vertical .cap-center {
+  padding: 4px 0;
+}
+
+@keyframes capsule-in-anchored {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

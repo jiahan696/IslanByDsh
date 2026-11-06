@@ -1,0 +1,17 @@
+node_modules/
+out/
+dist/
+*.log
+*.tsbuildinfo
+shot*.png
+cdp-*.png
+full-*.png
+packaged-*.png
+crop-*.png
+media-test.*
+apps-test.json
+bt-test.json
+npm-install.log
+electron-install.log
+dist-build.log
+dev.log

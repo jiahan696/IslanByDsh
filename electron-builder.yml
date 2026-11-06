@@ -1,0 +1,36 @@
+appId: com.desktool.liquidisland
+productName: LiquidIsland
+copyright: MIT
+electronDist: node_modules/electron/dist
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**/*
+  - package.json
+extraResources:
+  - from: resources
+    to: resources
+asar: true
+compression: normal
+win:
+  icon: build/icon.ico
+  target:
+    - target: portable
+      arch:
+        - x64
+    - target: nsis
+      arch:
+        - x64
+  requestedExecutionLevel: asInvoker
+portable:
+  artifactName: LiquidIsland-${version}-portable.${ext}
+  unicode: true
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: LiquidIsland
+  artifactName: LiquidIsland-${version}-x64-setup.${ext}

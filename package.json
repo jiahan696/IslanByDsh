@@ -1,0 +1,37 @@
+{
+  "name": "liquid-island",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Liquid Island - a liquid-glass dynamic island for Windows desktop",
+  "main": "./out/main/index.js",
+  "author": "Desk-tool",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "dist": "electron-vite build && electron-builder --win portable --x64",
+    "dist:installer": "electron-vite build && electron-builder --win nsis --x64",
+    "dist:all": "electron-vite build && electron-builder --win portable nsis --x64",
+    "dist:dir": "electron-vite build && electron-builder --win --dir"
+  },
+  "dependencies": {
+    "lucide-react": "^0.544.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "systeminformation": "^5.33.19",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^6.2.1",
+    "electron": "45.2.1",
+    "electron-builder": "26.18.0",
+    "electron-vite": "6.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.5"
+  }
+}
