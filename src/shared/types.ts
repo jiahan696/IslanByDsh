@@ -442,6 +442,7 @@ export interface IslandApi {
   systemSetVolume: (value: number) => Promise<SystemState>
   systemToggleMute: () => Promise<SystemState>
   systemScreenshot: () => Promise<{ ok: boolean; message: string; dataUrl?: string; path?: string }>
+  systemSelectRegion: () => Promise<{ x: number; y: number; w: number; h: number } | null>
   systemCopyScreenshot: (dataUrl: string) => Promise<{ ok: boolean; message: string }>
   systemSaveRecording: (data: string, mime: string) => Promise<{ ok: boolean; message: string; path?: string }>
   filesAdd: (paths: string[]) => Promise<ShelfItem[]>

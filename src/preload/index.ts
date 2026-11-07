@@ -38,6 +38,7 @@ const api: IslandApi = {
   systemSetVolume: (value) => ipcRenderer.invoke(IPC.systemSetVolume, value),
   systemToggleMute: () => ipcRenderer.invoke(IPC.systemToggleMute),
   systemScreenshot: () => ipcRenderer.invoke(IPC.systemScreenshot),
+  systemSelectRegion: () => ipcRenderer.invoke(IPC.systemSelectRegion),
   systemCopyScreenshot: (dataUrl) => ipcRenderer.invoke(IPC.systemCopyScreenshot, dataUrl),
   systemSaveRecording: (data, mime) => ipcRenderer.invoke(IPC.systemSaveRecording, data, mime),
   filesAdd: (paths) => ipcRenderer.invoke(IPC.filesAdd, paths),

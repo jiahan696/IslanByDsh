@@ -263,6 +263,7 @@ function registerIpc(): void {
   ipcMain.handle(IPC.systemSetVolume, (_event, value: unknown) => systemService.setVolume(Number(value)))
   ipcMain.handle(IPC.systemToggleMute, () => systemService.toggleMute())
   ipcMain.handle(IPC.systemScreenshot, () => systemService.screenshot())
+  ipcMain.handle(IPC.systemSelectRegion, () => systemService.selectRegion())
   ipcMain.handle(IPC.systemCopyScreenshot, async (_event, dataUrl: unknown) => {
     try {
       const image = nativeImage.createFromDataURL(String(dataUrl ?? ''))

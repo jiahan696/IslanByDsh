@@ -29,6 +29,7 @@ export const IPC = {
   systemSetVolume: 'island:system-set-volume',
   systemToggleMute: 'island:system-toggle-mute',
   systemScreenshot: 'island:system-screenshot',
+  systemSelectRegion: 'island:system-select-region',
   systemCopyScreenshot: 'island:system-copy-screenshot',
   systemSaveRecording: 'island:system-save-recording',
   filesAdd: 'island:files-add',

@@ -130,6 +130,10 @@ class SystemService extends EventEmitter {
     this.emit('system', this.get())
   }
 
+  async selectRegion(): Promise<{ x: number; y: number; w: number; h: number } | null> {
+    return this.chooseRect()
+  }
+
   private async chooseRect(): Promise<{ x: number; y: number; w: number; h: number } | null> {
     const display = screen.getPrimaryDisplay()
     const overlay = new BrowserWindow({

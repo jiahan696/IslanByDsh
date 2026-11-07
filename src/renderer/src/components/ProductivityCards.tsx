@@ -159,6 +159,14 @@ export function SystemCard(): ReactNode {
     if (error) pushToast({ id: `rec-${Date.now()}`, kind: 'error', text: `无法开始录屏：${error}` })
   }
 
+  const toggleRegionRecording = async (): Promise<void> => {
+    if (recording.active) return
+    const region = await window.island.systemSelectRegion()
+    if (!region) return
+    const error = await startRecording(region)
+    if (error) pushToast({ id: `rec-${Date.now()}`, kind: 'error', text: `无法开始录屏：${error}` })
+  }
+
   return (
     <section className="tool-card productivity-card">
       <CardHead
@@ -209,7 +217,10 @@ export function SystemCard(): ReactNode {
           <Image size={12} /> {busy ? '选择区域…' : '选区截图'}
         </button>
         <button type="button" className={`btn btn-sm ${recording.active ? 'is-danger' : ''}`} onClick={() => void toggleRecording()}>
-          <Video size={12} /> {recording.active ? '停止录屏' : '开始录屏'}
+          <Video size={12} /> {recording.active ? '停止录屏' : '全屏录屏'}
+        </button>
+        <button type="button" className="btn btn-sm" onClick={() => void toggleRegionRecording()} disabled={recording.active}>
+          <Video size={12} /> 选区录屏
         </button>
         {recording.active && recording.startedAt ? (
           <span className="recording-pill">
