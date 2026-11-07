@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { useState } from 'react'
-import { Music2, Pause, Play, SkipBack, SkipForward, Volume2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Music2, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react'
 import { useIsland } from '../store'
 import { formatDuration } from '../lib/format'
 import { usePlaybackPosition } from '../lib/hooks'
@@ -34,9 +34,12 @@ function Equalizer({ running }: { running: boolean }): ReactNode {
 
 export function MediaCard(): ReactNode {
   const media = useIsland((state) => state.media)
+  const system = useIsland((state) => state.system)
   const pushToast = useIsland((state) => state.pushToast)
   const position = usePlaybackPosition(media, 250)
   const [drag, setDrag] = useState<number | null>(null)
+  const [volume, setVolume] = useState(system.volume)
+  useEffect(() => setVolume(system.volume), [system.volume])
 
   const hasMedia = media.hasSession && Boolean(media.title)
   const shown = drag ?? position
@@ -156,6 +159,30 @@ export function MediaCard(): ReactNode {
         >
           <SkipForward size={17} />
         </button>
+        <button
+          type="button"
+          className="round-btn"
+          onClick={() => void window.island.systemToggleMute()}
+          aria-label={system.muted ? '取消静音' : '静音'}
+        >
+          {system.muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        </button>
+      </div>
+
+      <div className="media-volume">
+        <span className="media-volume-label">音量</span>
+        <input
+          className="seek"
+          type="range"
+          min={0}
+          max={100}
+          value={volume}
+          onChange={(event) => setVolume(Number(event.target.value))}
+          onPointerUp={() => void window.island.systemSetVolume(volume)}
+          onKeyUp={() => void window.island.systemSetVolume(volume)}
+          aria-label="媒体音量"
+        />
+        <span className="media-volume-value">{volume}%</span>
       </div>
 
       <div className="lyric-box" aria-label="滚动歌词">

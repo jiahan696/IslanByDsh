@@ -6,10 +6,12 @@ import {
   BellOff,
   CalendarDays,
   Check,
+  Clipboard as ClipboardIcon,
   ChevronLeft,
   ChevronRight,
   Cloud,
   Droplets,
+  FolderOpen,
   Hourglass,
   MapPin,
   Pause,
@@ -17,6 +19,7 @@ import {
   Plus,
   RefreshCw,
   RotateCcw,
+  SlidersHorizontal,
   Timer,
   Trash2,
   Wind
@@ -34,6 +37,7 @@ import {
 } from '../lib/format'
 import { Switch } from './ui'
 import { WeatherGlyph } from './glyphs'
+import { ClipboardCard, FilesCard, SystemCard } from './ProductivityCards'
 
 function startOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1)
@@ -740,6 +744,14 @@ export function ToolsModule(): ReactNode {
   const [selected, setSelected] = useState(() => localDateKey(new Date()))
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [active, setActive] = useState('tool-calendar')
+  const tools = useIsland((state) => state.settings.tools)
+
+  const nav = [
+    ...TOOL_NAV,
+    ...(tools.clipboard ? [{ id: 'tool-clipboard', label: '剪贴板', icon: ClipboardIcon }] : []),
+    ...(tools.system ? [{ id: 'tool-system', label: '系统', icon: SlidersHorizontal }] : []),
+    ...(tools.fileShelf ? [{ id: 'tool-files', label: '暂存', icon: FolderOpen }] : [])
+  ]
 
   const jump = (id: string): void => {
     setActive(id)
@@ -750,7 +762,7 @@ export function ToolsModule(): ReactNode {
   return (
     <div className="tools-shell">
       <nav className="tools-nav" aria-label="工具快捷定位">
-        {TOOL_NAV.map((item) => {
+        {nav.map((item) => {
           const Icon = item.icon
           return (
             <button
@@ -781,6 +793,9 @@ export function ToolsModule(): ReactNode {
       <TimersCard />
       <AlarmsCard />
       <TodosCard date={selected} />
+      {tools.clipboard ? <div id="tool-clipboard" className="productivity-slot"><ClipboardCard /></div> : null}
+      {tools.system ? <div id="tool-system" className="productivity-slot"><SystemCard /></div> : null}
+      {tools.fileShelf ? <div id="tool-files" className="productivity-slot"><FilesCard /></div> : null}
       </div>
     </div>
   )

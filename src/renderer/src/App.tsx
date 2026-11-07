@@ -15,6 +15,31 @@ export default function App(): ReactNode {
   const [panelVisible, setPanelVisible] = useState(false)
 
   useEffect(() => {
+    const onDragOver = (event: DragEvent): void => {
+      if (!event.dataTransfer?.types.includes('Files')) return
+      if (!useIsland.getState().settings.tools.fileShelf) return
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'copy'
+    }
+    const onDrop = (event: DragEvent): void => {
+      if (!event.dataTransfer?.files.length) return
+      if (!useIsland.getState().settings.tools.fileShelf) return
+      event.preventDefault()
+      const paths = Array.from(event.dataTransfer.files)
+        .map((file) => window.island.getPathForFile(file))
+        .filter(Boolean)
+      if (!paths.length) return
+      void window.island.filesAdd(paths).then((items) => useIsland.getState().setFiles(items))
+    }
+    window.addEventListener('dragover', onDragOver)
+    window.addEventListener('drop', onDrop)
+    return () => {
+      window.removeEventListener('dragover', onDragOver)
+      window.removeEventListener('drop', onDrop)
+    }
+  }, [])
+
+  useEffect(() => {
     const api = window.island
     const store = useIsland.getState()
     let disposed = false
@@ -28,6 +53,9 @@ export default function App(): ReactNode {
       api.onSearchStatus((state) => store.setSearchStatus(state)),
       api.onApps((state) => store.setApps(state)),
       api.onWeather((state) => store.setWeather(state)),
+      api.onClipboard((items) => store.setClipboard(items)),
+      api.onSystem((state) => store.setSystem(state)),
+      api.onFiles((items) => store.setFiles(items)),
       api.onTheme((next) => store.setTheme(next)),
       api.onSettings((settings) => store.setSettings(settings)),
       api.onPanelClose(() => setPanelVisible(false)),

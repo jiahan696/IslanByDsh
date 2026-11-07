@@ -1,7 +1,15 @@
 import { app, nativeTheme } from 'electron'
 import { EventEmitter } from 'node:events'
 import fs from 'node:fs'
-import type { GlassCustom, IslandLayout, ResolvedTheme, Settings, SolidPreset, SolidTheme } from '@shared/types'
+import type {
+  GlassCustom,
+  IslandLayout,
+  ResolvedTheme,
+  Settings,
+  SolidPreset,
+  SolidTheme,
+  ToolSettings
+} from '@shared/types'
 import { JsonStore } from '../lib/json-store'
 import { userDataPath } from '../lib/paths'
 
@@ -47,6 +55,16 @@ export const DEFAULT_LAYOUT: IslandLayout = {
   freeDrag: true
 }
 
+export const DEFAULT_TOOLS: ToolSettings = {
+  media: true,
+  clipboard: false,
+  system: false,
+  fileShelf: false,
+  clipboardMax: 80,
+  clipboardClearOnStart: true,
+  shelfClearOnStart: false
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   renderMode: 'glass',
   theme: 'system',
@@ -54,6 +72,7 @@ export const DEFAULT_SETTINGS: Settings = {
   glassCustom: DEFAULT_GLASS_CUSTOM,
   solidTheme: DEFAULT_SOLID_THEME,
   layout: DEFAULT_LAYOUT,
+  tools: DEFAULT_TOOLS,
   reduceMotion: false,
   showSeconds: false,
   notificationsBridge: true,
@@ -134,6 +153,22 @@ function sanitize(patch: Partial<Settings>, current: Settings): Settings {
   }
   if (patch.layout && typeof patch.layout === 'object') {
     next.layout = sanitizeLayout(patch.layout, current.layout)
+  }
+  if (patch.tools && typeof patch.tools === 'object') {
+    const raw = patch.tools as Partial<ToolSettings>
+    next.tools = {
+      media: typeof raw.media === 'boolean' ? raw.media : current.tools.media,
+      clipboard: typeof raw.clipboard === 'boolean' ? raw.clipboard : current.tools.clipboard,
+      system: typeof raw.system === 'boolean' ? raw.system : current.tools.system,
+      fileShelf: typeof raw.fileShelf === 'boolean' ? raw.fileShelf : current.tools.fileShelf,
+      clipboardMax: clampNumber(raw.clipboardMax, 10, 300, current.tools.clipboardMax),
+      clipboardClearOnStart:
+        typeof raw.clipboardClearOnStart === 'boolean'
+          ? raw.clipboardClearOnStart
+          : current.tools.clipboardClearOnStart,
+      shelfClearOnStart:
+        typeof raw.shelfClearOnStart === 'boolean' ? raw.shelfClearOnStart : current.tools.shelfClearOnStart
+    }
   }
   if (typeof patch.reduceMotion === 'boolean') next.reduceMotion = patch.reduceMotion
   if (typeof patch.showSeconds === 'boolean') next.showSeconds = patch.showSeconds

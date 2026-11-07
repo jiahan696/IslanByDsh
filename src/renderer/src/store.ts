@@ -2,17 +2,22 @@ import { create } from 'zustand'
 import type {
   AppListStatus,
   Bootstrap,
+  ClipboardEntry,
   GlassCustom,
   IslandLayout,
   IslandMode,
   MediaState,
   NotificationState,
+  RecordingState,
   ResolvedTheme,
   SearchStatus,
   Settings,
+  ShelfItem,
   SolidTheme,
   SystemMetrics,
+  SystemState,
   TimerState,
+  ToolSettings,
   TodoItem,
   WeatherNow
 } from '@shared/types'
@@ -146,6 +151,16 @@ const defaultLayout: IslandLayout = {
   freeDrag: true
 }
 
+const defaultTools: ToolSettings = {
+  media: true,
+  clipboard: false,
+  system: false,
+  fileShelf: false,
+  clipboardMax: 80,
+  clipboardClearOnStart: true,
+  shelfClearOnStart: false
+}
+
 const initialSettings: Settings = {
   renderMode: 'glass',
   theme: 'system',
@@ -153,12 +168,23 @@ const initialSettings: Settings = {
   glassCustom: defaultGlassCustom,
   solidTheme: defaultSolidTheme,
   layout: defaultLayout,
+  tools: defaultTools,
   reduceMotion: false,
   showSeconds: false,
   notificationsBridge: true,
   startAtLogin: false,
   searchRoots: [],
   panelWidth: 980
+}
+
+const initialSystem: SystemState = {
+  brightness: null,
+  volume: 50,
+  muted: false,
+  capsLock: false,
+  numLock: false,
+  recording: false,
+  recordingStartedAt: null
 }
 
 interface IslandState {
@@ -174,6 +200,10 @@ interface IslandState {
   apps: AppListStatus
   weather: WeatherNow
   todos: TodoItem[]
+  clipboard: ClipboardEntry[]
+  system: SystemState
+  files: ShelfItem[]
+  recording: RecordingState
   backdrop: Backdrop | null
   version: string
 
@@ -195,6 +225,10 @@ interface IslandState {
   setApps: (state: AppListStatus) => void
   setWeather: (state: WeatherNow) => void
   setTodos: (items: TodoItem[]) => void
+  setClipboard: (items: ClipboardEntry[]) => void
+  setSystem: (state: SystemState) => void
+  setFiles: (items: ShelfItem[]) => void
+  setRecording: (state: RecordingState) => void
   setBackdrop: (frame: Backdrop | null) => void
   setTab: (tab: PanelTab) => void
   setSettingsOpen: (open: boolean) => void
@@ -217,6 +251,10 @@ export const useIsland = create<IslandState>((set) => ({
   apps: initialApps,
   weather: initialWeather,
   todos: [],
+  clipboard: [],
+  system: initialSystem,
+  files: [],
+  recording: { active: false, startedAt: null },
   backdrop: null,
   version: '1.0.0',
 
@@ -240,6 +278,9 @@ export const useIsland = create<IslandState>((set) => ({
       apps: bootstrap.apps,
       weather: bootstrap.weather,
       todos: bootstrap.todos,
+      clipboard: bootstrap.clipboard,
+      system: bootstrap.system,
+      files: bootstrap.files,
       backdrop: bootstrap.backdrop,
       version: bootstrap.version
     }),
@@ -254,6 +295,10 @@ export const useIsland = create<IslandState>((set) => ({
   setApps: (apps) => set({ apps }),
   setWeather: (weather) => set({ weather }),
   setTodos: (todos) => set({ todos }),
+  setClipboard: (clipboard) => set({ clipboard }),
+  setSystem: (system) => set({ system }),
+  setFiles: (files) => set({ files }),
+  setRecording: (recording) => set({ recording }),
   setBackdrop: (backdrop) => set({ backdrop }),
   setTab: (tab) => set({ tab }),
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),

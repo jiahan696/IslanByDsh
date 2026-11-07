@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import { IPC } from '../shared/channels'
 import type { IslandApi } from '../shared/types'
 
@@ -33,6 +33,24 @@ const api: IslandApi = {
   alarms: (action, alarm) => ipcRenderer.invoke(IPC.alarms, action, alarm),
   todos: (action, payload) => ipcRenderer.invoke(IPC.todos, action, payload),
   notifications: (action, payload) => ipcRenderer.invoke(IPC.notifications, action, payload),
+  clipboard: (action, payload) => ipcRenderer.invoke(IPC.clipboard, action, payload),
+  systemSetBrightness: (value) => ipcRenderer.invoke(IPC.systemSetBrightness, value),
+  systemSetVolume: (value) => ipcRenderer.invoke(IPC.systemSetVolume, value),
+  systemToggleMute: () => ipcRenderer.invoke(IPC.systemToggleMute),
+  systemScreenshot: () => ipcRenderer.invoke(IPC.systemScreenshot),
+  systemCopyScreenshot: (dataUrl) => ipcRenderer.invoke(IPC.systemCopyScreenshot, dataUrl),
+  systemSaveRecording: (data, mime) => ipcRenderer.invoke(IPC.systemSaveRecording, data, mime),
+  filesAdd: (paths) => ipcRenderer.invoke(IPC.filesAdd, paths),
+  filesRemove: (id) => ipcRenderer.invoke(IPC.filesRemove, id),
+  filesClear: () => ipcRenderer.invoke(IPC.filesClear),
+  filesDragOut: (id) => ipcRenderer.send(IPC.filesDragOut, id),
+  getPathForFile: (file) => {
+    try {
+      return webUtils.getPathForFile(file)
+    } catch {
+      return ''
+    }
+  },
   updateSettings: (patch) => ipcRenderer.invoke(IPC.updateSettings, patch),
   hidePanel: () => ipcRenderer.invoke(IPC.collapse),
 
@@ -44,6 +62,9 @@ const api: IslandApi = {
   onSearchStatus: (cb) => subscribe(IPC.onSearchStatus, cb),
   onApps: (cb) => subscribe(IPC.onApps, cb),
   onWeather: (cb) => subscribe(IPC.onWeather, cb),
+  onClipboard: (cb) => subscribe(IPC.onClipboard, cb),
+  onSystem: (cb) => subscribe(IPC.onSystem, cb),
+  onFiles: (cb) => subscribe(IPC.onFiles, cb),
   onTheme: (cb) => subscribe(IPC.onTheme, cb),
   onSettings: (cb) => subscribe(IPC.onSettings, cb),
   onPanelClose: (cb) => subscribe(IPC.onPanelClose, cb),

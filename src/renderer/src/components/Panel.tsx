@@ -28,6 +28,7 @@ import { SettingsSheet } from './SettingsSheet'
 
 export function Panel({ closing }: { closing: boolean }): ReactNode {
   const settings = useIsland((state) => state.settings)
+  const mediaEnabled = settings.tools.media
   const solidMode = settings.renderMode === 'solid'
   const theme = useIsland((state) => state.theme)
   const weather = useIsland((state) => state.weather)
@@ -130,7 +131,7 @@ export function Panel({ closing }: { closing: boolean }): ReactNode {
 
         <div className="panel-body">
           <aside className="rail">
-            <MediaCard />
+            {mediaEnabled ? <MediaCard /> : null}
             <NotificationsCard />
             <SystemCard />
           </aside>

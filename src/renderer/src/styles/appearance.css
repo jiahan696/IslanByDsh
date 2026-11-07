@@ -279,6 +279,30 @@
   width: 230px;
 }
 
+.cap-tool.tool-clipboard {
+  width: 58px;
+  justify-content: center;
+  gap: 3px;
+}
+
+.cap-tool.tool-system {
+  width: 76px;
+  justify-content: center;
+  gap: 3px;
+}
+
+.cap-tool.tool-files {
+  width: 64px;
+  justify-content: center;
+  gap: 3px;
+}
+
+.cap-tool-count {
+  font-size: 9px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
 .cap-tool-text {
   display: flex;
   flex-direction: column;

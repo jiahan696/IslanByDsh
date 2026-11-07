@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   AlarmClock,
@@ -11,9 +11,12 @@ import {
   Bluetooth,
   ChevronDown,
   ChevronUp,
+  Clipboard as ClipboardIcon,
   Cpu,
+  FolderOpen,
   Hourglass,
   MemoryStick,
+  SlidersHorizontal,
   Sparkles,
   Timer,
   Zap
@@ -120,10 +123,21 @@ function CenterStatus(): ReactNode {
 function ActiveTools(): ReactNode {
   const media = useIsland((state) => state.media)
   const timers = useIsland((state) => state.timers)
+  const settings = useIsland((state) => state.settings)
+  const clipboard = useIsland((state) => state.clipboard)
+  const files = useIsland((state) => state.files)
+  const system = useIsland((state) => state.system)
+  const recording = useIsland((state) => state.recording)
+  const now = useNow(recording.active ? 1000 : 60_000)
   const countdownActive =
     !timers.firingCountdown &&
     (timers.countdown.running || timers.countdown.remainingMs !== timers.countdown.totalMs)
   const stopwatchActive = timers.stopwatch.running || timers.stopwatch.elapsedMs > 0
+  const openTools = (event: MouseEvent): void => {
+    event.stopPropagation()
+    useIsland.getState().setTab('tools')
+    void window.island.expand()
+  }
   return (
     <div className="cap-tools">
       {timers.firingAlarm ? (
@@ -227,10 +241,50 @@ function ActiveTools(): ReactNode {
         </div>
       ) : null}
 
-      {media.hasSession && media.title ? (
-        <div className="cap-tool tool-media">
+      {settings.tools.media && media.hasSession && media.title ? (
+        <div className="cap-tool tool-media" onClick={openTools} role="button" tabIndex={0}>
           <MediaPeek paused={false} />
         </div>
+      ) : null}
+
+      {settings.tools.clipboard ? (
+        <button
+          type="button"
+          className="cap-tool tool-clipboard"
+          onClick={openTools}
+          title={`剪贴板历史 · ${clipboard.length} 条`}
+        >
+          <ClipboardIcon size={14} />
+          <span className="cap-tool-count">{clipboard.length}</span>
+        </button>
+      ) : null}
+
+      {settings.tools.system ? (
+        <button
+          type="button"
+          className="cap-tool tool-system"
+          onClick={openTools}
+          title={`系统控制${recording.active ? ' · 录屏中' : ''}`}
+        >
+          <SlidersHorizontal size={14} />
+          <span className="cap-tool-count">
+            {recording.active && recording.startedAt
+              ? `REC ${formatTimerShort(now.getTime() - recording.startedAt)}`
+              : `${system.volume}%`}
+          </span>
+        </button>
+      ) : null}
+
+      {settings.tools.fileShelf ? (
+        <button
+          type="button"
+          className="cap-tool tool-files"
+          onClick={openTools}
+          title={`文件暂存架 · ${files.length} 项`}
+        >
+          <FolderOpen size={14} />
+          <span className="cap-tool-count">{files.length}</span>
+        </button>
       ) : null}
     </div>
   )
@@ -244,6 +298,10 @@ export function Capsule(): ReactNode {
   const notifications = useIsland((state) => state.notifications)
   const timers = useIsland((state) => state.timers)
   const weather = useIsland((state) => state.weather)
+  const clipboard = useIsland((state) => state.clipboard)
+  const files = useIsland((state) => state.files)
+  const system = useIsland((state) => state.system)
+  const recording = useIsland((state) => state.recording)
   // When expanded the capsule only shows minutes, so stop the 1 s clock tick.
   const now = useNow(mode === 'expanded' && !settings.showSeconds ? 30_000 : 1000)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -293,14 +351,17 @@ export function Capsule(): ReactNode {
         ? 150
         : 0,
       timers.stopwatch.running || timers.stopwatch.elapsedMs > 0 ? 140 : 0,
-      media.hasSession && media.title ? 230 : 0
+      settings.tools.media && media.hasSession && media.title ? 230 : 0,
+      settings.tools.clipboard ? 58 : 0,
+      settings.tools.system ? 84 : 0,
+      settings.tools.fileShelf ? 64 : 0
     ].filter((width) => width > 0)
     const base = Math.max(560, Math.ceil(measured))
     const toolWidth = toolWidths.reduce((sum, width) => sum + width, 0)
     const next =
       toolWidths.length === 0
         ? base
-        : Math.min(1500, Math.max(560, Math.ceil(base + toolWidth + gap + 8 * (toolWidths.length - 1))))
+        : Math.min(1600, Math.max(560, Math.ceil(base + toolWidth + gap + 8 * (toolWidths.length - 1))))
     if (Math.abs(next - lastWidthRef.current) < 2) return
     lastWidthRef.current = next
     setCapsuleWidth(next)
@@ -330,7 +391,15 @@ export function Capsule(): ReactNode {
     weather.tempC,
     weather.city,
     weather.condition,
-    notifications.unread
+    notifications.unread,
+    settings.tools.media,
+    settings.tools.clipboard,
+    settings.tools.system,
+    settings.tools.fileShelf,
+    clipboard.length,
+    files.length,
+    system.volume,
+    recording.active
   ])
 
   useEffect(() => {

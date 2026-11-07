@@ -195,8 +195,19 @@ class IslandWindow extends EventEmitter {
       h: Math.max(1, bounds.h)
     }
     this.hasCapsuleBounds = true
-    if (this.mode === 'collapsed') this.applyShape()
+    if (this.mode === 'collapsed') this.scheduleShape()
     this.updateClickThrough()
+  }
+
+  private scheduleShape(): void {
+    if (this.shapeTimer) return
+    // Coalesce the 60–120 Hz renderer resize stream into at most one native
+    // mask update per frame. setShape is a synchronous OS call; flooding it
+    // during the width transition is a major source of stutter.
+    this.shapeTimer = setTimeout(() => {
+      this.shapeTimer = null
+      this.applyShape()
+    }, 16)
   }
 
   /**
@@ -204,6 +215,8 @@ class IslandWindow extends EventEmitter {
    * drawable/interactive; expanded = the full display stays available for the
    * panel and its click-outside catcher.
    */
+  private shapeTimer: NodeJS.Timeout | null = null
+
   private applyShape(): void {
     if (!this.win || this.win.isDestroyed()) return
     try {
@@ -229,12 +242,16 @@ class IslandWindow extends EventEmitter {
 
   private startPolling(): void {
     if (this.pollTimer) clearInterval(this.pollTimer)
-    this.pollTimer = setInterval(() => this.updateClickThrough(), 100)
+    // Poll faster than the old 100 ms cadence: a 100 ms click-through window
+    // made the first click after the pointer entered the capsule feel lost.
+    this.pollTimer = setInterval(() => this.updateClickThrough(), 40)
   }
 
   private stopPolling(): void {
     if (this.pollTimer) clearInterval(this.pollTimer)
     this.pollTimer = null
+    if (this.shapeTimer) clearTimeout(this.shapeTimer)
+    this.shapeTimer = null
   }
 
   private updateClickThrough(): void {

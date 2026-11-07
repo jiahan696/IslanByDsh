@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import {
+  Clipboard as ClipboardIcon,
   Database,
+  FolderOpen,
   FolderPlus,
   HardDrive,
   Info,
@@ -9,8 +11,10 @@ import {
   Palette,
   Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   Trash2,
-  Wifi
+  Wifi,
+  Wrench
 } from 'lucide-react'
 import type {
   GlassCustom,
@@ -496,6 +500,60 @@ export function SettingsSheet(): ReactNode {
           <div className="settings-note">
             <Info size={13} />
             布局设置属于两种渲染模式共用，不会随玻璃 / 纯色切换而隐藏或清空。
+          </div>
+        </section>
+
+        <section className="settings-section">
+          <h3>
+            <Wrench size={14} /> 工具模块
+          </h3>
+          <div className="setting-row">
+            <div>
+              <strong>媒体控制</strong>
+              <span>检测系统播放源，胶囊中显示曲名与播放状态</span>
+            </div>
+            <Switch
+              checked={settings.tools.media}
+              onChange={(checked) => void update({ tools: { ...settings.tools, media: checked } })}
+              label="启用媒体控制工具"
+            />
+          </div>
+          <div className="setting-row">
+            <div>
+              <strong><ClipboardIcon size={12} /> 剪贴板历史</strong>
+              <span>低功耗监听复制记录；固定条目永久保留</span>
+            </div>
+            <Switch
+              checked={settings.tools.clipboard}
+              onChange={(checked) => void update({ tools: { ...settings.tools, clipboard: checked } })}
+              label="启用剪贴板工具"
+            />
+          </div>
+          <div className="setting-row">
+            <div>
+              <strong><SlidersHorizontal size={12} /> 系统控制</strong>
+              <span>亮度、音量、锁定键、电量与截图录屏</span>
+            </div>
+            <Switch
+              checked={settings.tools.system}
+              onChange={(checked) => void update({ tools: { ...settings.tools, system: checked } })}
+              label="启用系统控制工具"
+            />
+          </div>
+          <div className="setting-row">
+            <div>
+              <strong><FolderOpen size={12} /> 文件暂存架</strong>
+              <span>拖入文件暂存，再拖回任意文件夹或应用</span>
+            </div>
+            <Switch
+              checked={settings.tools.fileShelf}
+              onChange={(checked) => void update({ tools: { ...settings.tools, fileShelf: checked } })}
+              label="启用文件暂存架"
+            />
+          </div>
+          <div className="settings-note">
+            <Info size={13} />
+            停用的工具不会渲染、不监听、不占用胶囊宽度；开启后按独立宽度追加。
           </div>
         </section>
 

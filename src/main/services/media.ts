@@ -73,6 +73,7 @@ class MediaService extends EventEmitter {
   start(): void {
     if (this.started) return
     this.started = true
+    this.stopping = false
     this.spawnPoller()
   }
 
@@ -159,6 +160,7 @@ class MediaService extends EventEmitter {
     })
 
     child.on('exit', (code) => {
+      if (this.child !== child) return
       this.reader?.close()
       this.reader = null
       this.child = null

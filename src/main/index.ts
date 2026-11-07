@@ -1,11 +1,15 @@
 import {
   app,
+  clipboard,
+  ClipboardItem,
+  desktopCapturer,
   dialog,
   globalShortcut,
   ipcMain,
   Menu,
   nativeImage,
   powerMonitor,
+  session,
   shell,
   Tray,
   type MenuItemConstructorOptions
@@ -30,6 +34,9 @@ import { todoService } from './services/todos'
 import { notificationService } from './services/notifications'
 import { captureService } from './services/capture'
 import { bluetoothService } from './services/bluetooth'
+import { clipboardService } from './services/clipboard'
+import { systemService } from './services/system'
+import { fileShelfService } from './services/files'
 import { userDataPath, resourcePath } from './lib/paths'
 import { log } from './lib/logger'
 
@@ -106,6 +113,9 @@ function registerIpc(): void {
     apps: appsService.getStatus(),
     weather: weatherService.get(),
     todos: todoService.list(),
+    clipboard: clipboardService.list(),
+    system: systemService.get(),
+    files: fileShelfService.list(),
     theme: settingsService.resolvedTheme(),
     version: app.isPackaged ? app.getVersion() : '1.0.0',
     platform: process.platform
@@ -240,6 +250,42 @@ function registerIpc(): void {
     return items
   })
 
+  ipcMain.handle(IPC.clipboard, (_event, action: unknown, payload: unknown) => {
+    const data = (payload ?? {}) as { id?: string; text?: string }
+    if (action === 'copy') return clipboardService.copy(String(data.id ?? ''))
+    if (action === 'pin') return clipboardService.pin(String(data.id ?? ''))
+    if (action === 'remove') return clipboardService.remove(String(data.id ?? ''))
+    if (action === 'clear') return clipboardService.clear()
+    return clipboardService.list()
+  })
+
+  ipcMain.handle(IPC.systemSetBrightness, (_event, value: unknown) => systemService.setBrightness(Number(value)))
+  ipcMain.handle(IPC.systemSetVolume, (_event, value: unknown) => systemService.setVolume(Number(value)))
+  ipcMain.handle(IPC.systemToggleMute, () => systemService.toggleMute())
+  ipcMain.handle(IPC.systemScreenshot, () => systemService.screenshot())
+  ipcMain.handle(IPC.systemCopyScreenshot, async (_event, dataUrl: unknown) => {
+    try {
+      const image = nativeImage.createFromDataURL(String(dataUrl ?? ''))
+      if (image.isEmpty()) return { ok: false, message: '截图数据无效' }
+      const blob = new Blob([new Uint8Array(image.toPNG())], { type: 'image/png' })
+      await clipboard.write([new ClipboardItem({ 'image/png': blob })])
+      return { ok: true, message: '截图已复制到剪贴板' }
+    } catch (error) {
+      return { ok: false, message: error instanceof Error ? error.message : '复制失败' }
+    }
+  })
+  ipcMain.handle(IPC.systemSaveRecording, (_event, data: unknown, mime: unknown) =>
+    systemService.saveRecording(String(data ?? ''), String(mime ?? 'video/webm'))
+  )
+
+  ipcMain.handle(IPC.filesAdd, (_event, paths: unknown) => {
+    if (!Array.isArray(paths)) return fileShelfService.list()
+    return fileShelfService.add(paths.filter((item): item is string => typeof item === 'string'))
+  })
+  ipcMain.handle(IPC.filesRemove, (_event, id: unknown) => fileShelfService.remove(String(id ?? '')))
+  ipcMain.handle(IPC.filesClear, () => fileShelfService.clear())
+  ipcMain.on(IPC.filesDragOut, (_event, id: unknown) => fileShelfService.dragOut(String(id ?? '')))
+
   ipcMain.handle(IPC.notifications, (_event, action: unknown, payload: unknown) => {
     if (action === 'clear') return notificationService.clear()
     if (action === 'remove') return notificationService.remove(String((payload as { id?: string })?.id ?? ''))
@@ -256,6 +302,19 @@ function registerIpc(): void {
         captureService.setEnabled(captureEnabled)
       }
       if (previous.notificationsBridge !== next.notificationsBridge) notificationService.startBridge(next.notificationsBridge)
+      if (previous.tools.clipboard !== next.tools.clipboard) {
+        clipboardService.setEnabled(next.tools.clipboard)
+      }
+      if (previous.tools.clipboardMax !== next.tools.clipboardMax) {
+        clipboardService.setMax(next.tools.clipboardMax)
+      }
+      if (previous.tools.system !== next.tools.system) {
+        systemService.setEnabled(next.tools.system)
+      }
+      if (previous.tools.media !== next.tools.media) {
+        if (next.tools.media) mediaService.start()
+        else mediaService.stop()
+      }
       if (JSON.stringify(previous.searchRoots) !== JSON.stringify(next.searchRoots)) {
         await searchService.setRoots(next.searchRoots)
       }
@@ -310,6 +369,9 @@ function wireEvents(): void {
   searchService.on('status', (status) => islandWindow.send(IPC.onSearchStatus, status))
   appsService.on('apps', (status) => islandWindow.send(IPC.onApps, status))
   weatherService.on('weather', (state) => islandWindow.send(IPC.onWeather, state))
+  clipboardService.on('clipboard', (items) => islandWindow.send(IPC.onClipboard, items))
+  systemService.on('system', (state) => islandWindow.send(IPC.onSystem, state))
+  fileShelfService.on('files', (items) => islandWindow.send(IPC.onFiles, items))
   captureService.on('backdrop', (frame) => islandWindow.send(IPC.onBackdrop, frame))
   settingsService.on('theme', (theme) => islandWindow.send(IPC.onTheme, theme))
   settingsService.on('settings', (settings) => {
@@ -351,7 +413,15 @@ function startDeferredServices(): void {
   ), 600)
   setTimeout(() => notificationService.startBridge(settingsService.get().notificationsBridge), 800)
   setTimeout(() => appsService.start(), 900)
-  setTimeout(() => mediaService.start(), 1000)
+  setTimeout(() => {
+    if (settingsService.get().tools.media) mediaService.start()
+  }, 1000)
+  setTimeout(() => {
+    const tools = settingsService.get().tools
+    clipboardService.start(tools.clipboard, tools.clipboardClearOnStart, tools.clipboardMax)
+    systemService.start(tools.system)
+    fileShelfService.start(tools.shelfClearOnStart)
+  }, 1150)
   setTimeout(() => weatherService.start(), 1200)
   setTimeout(() => searchService.start(settingsService.get().searchRoots), 1500)
   setTimeout(() => bluetoothService.start(), 3000)
@@ -363,6 +433,9 @@ function stopServices(): void {
     alertBeepTimer = null
     settingsService.flush()
     todoService.flush()
+    clipboardService.stop()
+    fileShelfService.flush()
+    systemService.stop()
     bluetoothService.stop()
     metricsService.stop()
     mediaService.stop()
@@ -388,6 +461,10 @@ async function init(): Promise<void> {
   log.rotate()
 
   registerIpc()
+  session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {
+    const sources = await desktopCapturer.getSources({ types: ['screen'], fetchWindowIcons: false })
+    callback({ video: sources[0], audio: 'loopback' })
+  })
   const win = islandWindow.create()
   win.on('close', (event) => {
     if (!quitting) {

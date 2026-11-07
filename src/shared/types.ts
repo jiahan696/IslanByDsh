@@ -10,6 +10,47 @@ export type ResolvedTheme = 'light' | 'dark'
 export type RenderMode = 'glass' | 'solid'
 export type SolidPreset = 'black' | 'white' | 'custom'
 export type ReminderKind = 'message' | 'alarm'
+
+export interface ToolSettings {
+  media: boolean
+  clipboard: boolean
+  system: boolean
+  fileShelf: boolean
+  clipboardMax: number
+  clipboardClearOnStart: boolean
+  shelfClearOnStart: boolean
+}
+
+export interface ClipboardEntry {
+  id: string
+  text: string
+  pinned: boolean
+  createdAt: number
+}
+
+export interface ShelfItem {
+  id: string
+  path: string
+  name: string
+  isDir: boolean
+  icon: string | null
+}
+
+export interface SystemState {
+  brightness: number | null
+  volume: number
+  muted: boolean
+  capsLock: boolean
+  numLock: boolean
+  recording: boolean
+  recordingStartedAt: number | null
+}
+
+export interface RecordingState {
+  active: boolean
+  startedAt: number | null
+}
+
 export type LayoutAnchor =
   | 'top-center'
   | 'bottom-center'
@@ -295,6 +336,8 @@ export interface Settings {
   solidTheme: SolidTheme
   /** Position/scale/orientation are shared by both render modes. */
   layout: IslandLayout
+  /** Optional tool modules. Disabled tools render nothing and use no width. */
+  tools: ToolSettings
   reduceMotion: boolean
   showSeconds: boolean
   notificationsBridge: boolean
@@ -315,6 +358,9 @@ export interface Bootstrap {
   apps: AppListStatus
   weather: WeatherNow
   todos: TodoItem[]
+  clipboard: ClipboardEntry[]
+  system: SystemState
+  files: ShelfItem[]
   theme: ResolvedTheme
   version: string
   platform: string
@@ -388,6 +434,21 @@ export interface IslandApi {
     }
   ) => Promise<TodoItem[]>
   notifications: (action: 'clear' | 'demo' | 'remove', payload?: { id?: string } | DemoNotificationInput) => Promise<NotificationState>
+  clipboard: (
+    action: 'copy' | 'pin' | 'remove' | 'clear',
+    payload?: { id?: string; text?: string }
+  ) => Promise<ClipboardEntry[]>
+  systemSetBrightness: (value: number) => Promise<SystemState>
+  systemSetVolume: (value: number) => Promise<SystemState>
+  systemToggleMute: () => Promise<SystemState>
+  systemScreenshot: () => Promise<{ ok: boolean; message: string; dataUrl?: string; path?: string }>
+  systemCopyScreenshot: (dataUrl: string) => Promise<{ ok: boolean; message: string }>
+  systemSaveRecording: (data: string, mime: string) => Promise<{ ok: boolean; message: string; path?: string }>
+  filesAdd: (paths: string[]) => Promise<ShelfItem[]>
+  filesRemove: (id: string) => Promise<ShelfItem[]>
+  filesClear: () => Promise<ShelfItem[]>
+  filesDragOut: (id: string) => void
+  getPathForFile: (file: File) => string
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
   hidePanel: () => void
   onMode: (cb: (mode: IslandMode) => void) => () => void
@@ -398,6 +459,9 @@ export interface IslandApi {
   onSearchStatus: (cb: (status: SearchStatus) => void) => () => void
   onApps: (cb: (status: AppListStatus) => void) => () => void
   onWeather: (cb: (weather: WeatherNow) => void) => () => void
+  onClipboard: (cb: (items: ClipboardEntry[]) => void) => () => void
+  onSystem: (cb: (state: SystemState) => void) => () => void
+  onFiles: (cb: (items: ShelfItem[]) => void) => () => void
   onTheme: (cb: (theme: ResolvedTheme) => void) => () => void
   onSettings: (cb: (settings: Settings) => void) => () => void
   onPanelClose: (cb: () => void) => () => void
